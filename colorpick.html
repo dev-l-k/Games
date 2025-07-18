@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Color Picker</title>
+    <link rel="icon" href="image/color.jpg">
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .color-picker-section {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .color-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .color-preview {
+            width: 200px;
+            height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 15px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6));
+            z-index: 0;
+        }
+
+        .color-preview-text {
+            position: relative;
+            z-index: 1;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        input[type="range"], input[type="color"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            height: 10px;
+            border-radius: 5px;
+            background: var(--background-color);
+            -webkit-appearance: none;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .color-codes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .code-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .code-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .code-card h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .code-value {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--background-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: #3367d6;
+        }
+
+        .code-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 600px) {
+            .color-display {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .color-codes {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+  <a href="index.html" style="text-decoration: none;color:white;"><div style="background-color: #4548FF;padding:5px 12px;position:fixed;top:20px;right:20px;font-size: 20px;border-radius: 5px;text-align: center;">&#8962;   <!-- Displays ⌂ --></div></a>
+    <div class="container">
+        <h1>Advanced Color Picker</h1>
+        
+        <div class="color-picker-section">
+            <div class="color-display">
+                <div class="color-preview" id="colorPreview">
+                    <div class="color-preview-text">
+                        <div id="hexText">HEX: #4285f4</div>
+                        <div id="rgbText">RGB: 66, 133, 244</div>
+                        <div id="hslText">HSL: 217, 89%, 61%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="input-group">
+                    <label for="colorPicker">Select Color:</label>
+                    <input type="color" id="colorPicker" value="#4285f4">
+                </div>
+                
+                <div class="input-group">
+                    <label for="redRange">Red: <span id="redValue">66</span></label>
+                    <input type="range" id="redRange" min="0" max="255" value="66">
+                </div>
+                
+                <div class="input-group">
+                    <label for="greenRange">Green: <span id="greenValue">133</span></label>
+                    <input type="range" id="greenRange" min="0" max="255" value="133">
+                </div>
+                
+                <div class="input-group">
+                    <label for="blueRange">Blue: <span id="blueValue">244</span></label>
+                    <input type="range" id="blueRange" min="0" max="255" value="244">
+                </div>
+            </div>
+        </div>
+        
+        <div class="color-codes">
+            <div class="code-card">
+                <h3><span class="code-swatch" id="hexSwatch"></span>HEX Code</h3>
+                <div class="code-value" id="hexCode">
+                    <span>#4285f4</span>
+                    <button class="copy-btn" data-target="hexCode">Copy</button>
+                </div>
+            </div>
+            
+            <div class="code-card">
+                <h3><span class="code-swatch" id="rgbSwatch"></span>RGB Code</h3>
+                <div class="code-value" id="rgbCode">
+                    <span>rgb(66, 133, 244)</span>
+                    <button class="copy-btn" data-target="rgbCode">Copy</button>
+                </div>
+            </div>
+            
+            <div class="code-card">
+                <h3><span class="code-swatch" id="rgbaSwatch"></span>RGBA Code</h3>
+                <div class="code-value" id="rgbaCode">
+                    <span>rgba(66, 133, 244, 1)</span>
+                    <button class="copy-btn" data-target="rgbaCode">Copy</button>
+                </div>
+            </div>
+            
+            <div class="code-card">
+                <h3><span class="code-swatch" id="hslSwatch"></span>HSL Code</h3>
+                <div class="code-value" id="hslCode">
+                    <span>hsl(217, 89%, 61%)</span>
+                    <button class="copy-btn" data-target="hslCode">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">Copied to clipboard!</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const colorPicker = document.getElementById('colorPicker');
+            const redRange = document.getElementById('redRange');
+            const greenRange = document.getElementById('greenRange');
+            const blueRange = document.getElementById('blueRange');
+            const redValue = document.getElementById('redValue');
+            const greenValue = document.getElementById('greenValue');
+            const blueValue = document.getElementById('blueValue');
+            const colorPreview = document.getElementById('colorPreview');
+            const hexText = document.getElementById('hexText');
+            const rgbText = document.getElementById('rgbText');
+            const hslText = document.getElementById('hslText');
+            
+            // Color code elements
+            const hexCode = document.getElementById('hexCode');
+            const rgbCode = document.getElementById('rgbCode');
+            const rgbaCode = document.getElementById('rgbaCode');
+            const hslCode = document.getElementById('hslCode');
+            
+            // Swatch elements
+            const hexSwatch = document.getElementById('hexSwatch');
+            const rgbSwatch = document.getElementById('rgbSwatch');
+            const rgbaSwatch = document.getElementById('rgbaSwatch');
+            const hslSwatch = document.getElementById('hslSwatch');
+            
+            // Toast notification
+            const toast = document.getElementById('toast');
+            
+            // Initial values
+            let red = parseInt(redRange.value);
+            let green = parseInt(greenRange.value);
+            let blue = parseInt(blueRange.value);
+            let hex = rgbToHex(red, green, blue);
+            
+            updateAll();
+            
+            // Event Listeners
+            colorPicker.addEventListener('input', function() {
+                hex = this.value;
+                const rgb = hexToRgb(hex);
+                red = rgb.r;
+                green = rgb.g;
+                blue = rgb.b;
+                
+                redRange.value = red;
+                greenRange.value = green;
+                blueRange.value = blue;
+                
+                updateRangeValues();
+                updateAll();
+            });
+            
+            redRange.addEventListener('input', function() {
+                red = parseInt(this.value);
+                redValue.textContent = red;
+                hex = rgbToHex(red, green, blue);
+                colorPicker.value = hex;
+                updateAll();
+            });
+            
+            greenRange.addEventListener('input', function() {
+                green = parseInt(this.value);
+                greenValue.textContent = green;
+                hex = rgbToHex(red, green, blue);
+                colorPicker.value = hex;
+                updateAll();
+            });
+            
+            blueRange.addEventListener('input', function() {
+                blue = parseInt(this.value);
+                blueValue.textContent = blue;
+                hex = rgbToHex(red, green, blue);
+                colorPicker.value = hex;
+                updateAll();
+            });
+            
+            // Copy buttons
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const text = document.getElementById(targetId).querySelector('span').textContent;
+                    copyToClipboard(text);
+                    
+                    // Show toast
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 2000);
+                });
+            });
+            
+            // Helper Functions
+            function updateAll() {
+                // Update color preview
+                colorPreview.style.backgroundColor = hex;
+                
+                // Update text displays
+                hexText.textContent = `HEX: ${hex.toUpperCase()}`;
+                rgbText.textContent = `RGB: ${red}, ${green}, ${blue}`;
+                
+                // Calculate HSL
+                const hsl = rgbToHsl(red, green, blue);
+                hslText.textContent = `HSL: ${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%`;
+                
+                // Update code displays
+                hexCode.querySelector('span').textContent = hex.toUpperCase();
+                rgbCode.querySelector('span').textContent = `rgb(${red}, ${green}, ${blue})`;
+                rgbaCode.querySelector('span').textContent = `rgba(${red}, ${green}, ${blue}, 1)`;
+                hslCode.querySelector('span').textContent = `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
+                
+                // Update swatches
+                hexSwatch.style.backgroundColor = hex;
+                rgbSwatch.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+                rgbaSwatch.style.backgroundColor = `rgba(${red}, ${green}, ${blue}, 0.8)`;
+                hslSwatch.style.backgroundColor = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+            }
+            
+            function updateRangeValues() {
+                redValue.textContent = red;
+                greenValue.textContent = green;
+                blueValue.textContent = blue;
+            }
+            
+            function rgbToHex(r, g, b) {
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            }
+            
+            function hexToRgb(hex) {
+                // Remove # if present
+                hex = hex.replace('#', '');
+                
+                // Parse to r, g, b values
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+                
+                return { r, g, b };
+            }
+            
+            function rgbToHsl(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+                
+                if (max === min) {
+                    h = s = 0; // achromatic
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    
+                    h *= 60;
+                }
+                
+                return {
+                    h: h,
+                    s: s * 100,
+                    l: l * 100
+                };
+            }
+            
+            function copyToClipboard(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        });
+    </script>
+</body>
+</html>

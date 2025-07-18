@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Division Calculator</title>
+    <link rel="icon" href="image/div.jpg">
+    
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #6c757d;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(-50px);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .calculator {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
+        input {
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(74, 107, 255, 0.25);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background-color: #3a5bef;
+            transform: translateY(-1px);
+        }
+
+        .results {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .result-card {
+            background-color: var(--light);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .result-title {
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .result-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .error {
+            color: var(--danger);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .icon {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+  <a href="index.html" style="text-decoration: none;color:white;"><div style="background-color: #4548FF;padding:5px 12px;position:fixed;top:20px;right:20px;font-size: 20px;border-radius: 5px;text-align: center;">&#8962;   <!-- Displays ⌂ --></div></a>
+    <div class="container">
+        <h1>Advanced Division Calculator</h1>
+        
+        <div class="calculator">
+            <div class="input-group">
+                <label for="dividend">Dividend (Number to be divided)</label>
+                <input type="number" id="dividend" placeholder="Enter a number...">
+                <div id="dividend-error" class="error">Please enter a valid number</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="divisor">Divisor (Number to divide by)</label>
+                <input type="number" id="divisor" placeholder="Enter a number...">
+                <div id="divisor-error" class="error">Please enter a valid number (cannot be zero)</div>
+            </div>
+            
+            <button id="calculate-btn">Calculate Division</button>
+            
+            <div id="results" class="results">
+                <div class="result-card">
+                    <div class="result-title">
+                        <span class="icon">→</span>
+                        <span>Decimal Quotient</span>
+                    </div>
+                    <div id="decimal-result" class="result-value">0</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">
+                        <span class="icon">→</span>
+                        <span>Remainder</span>
+                    </div>
+                    <div id="remainder-result" class="result-value">0</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">
+                        <span class="icon">→</span>
+                        <span>Remainder-Based Quotient</span>
+                    </div>
+                    <div id="mixed-result" class="result-value">0 r0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dividendInput = document.getElementById('dividend');
+            const divisorInput = document.getElementById('divisor');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const resultsContainer = document.getElementById('results');
+            const decimalResult = document.getElementById('decimal-result');
+            const remainderResult = document.getElementById('remainder-result');
+            const mixedResult = document.getElementById('mixed-result');
+            const dividendError = document.getElementById('dividend-error');
+            const divisorError = document.getElementById('divisor-error');
+            
+            calculateBtn.addEventListener('click', calculateDivision);
+            
+            // Also allow calculation on Enter key press
+            dividendInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateDivision(); 
+            });
+            
+            divisorInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateDivision();
+            });
+            
+            function calculateDivision() {
+                // Reset errors
+                dividendError.style.display = 'none';
+                divisorError.style.display = 'none';
+                
+                // Get values
+                const dividend = parseFloat(dividendInput.value);
+                const divisor = parseFloat(divisorInput.value);
+                
+                // Validate inputs
+                let isValid = true;
+                
+                if (isNaN(dividend)) {
+                    dividendError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (isNaN(divisor) || divisor === 0) {
+                    divisorError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Calculate results
+                const quotient = dividend / divisor;
+                const remainder = dividend % divisor;
+                
+                // Round to maximum 4 decimal places for display
+                const roundedQuotient = Math.round(quotient * 10000) / 10000;
+                
+                // Display results
+                decimalResult.textContent = roundedQuotient;
+                remainderResult.textContent = remainder;
+                mixedResult.textContent = `${Math.floor(quotient)} r${remainder}`;
+                
+                // Show results container
+                resultsContainer.style.display = 'block';
+                
+                // Animate the results
+                resultsContainer.style.opacity = '0';
+                resultsContainer.style.transform = 'translateY(20px)';
+                resultsContainer.style.transition = 'all 0.3s ease';
+                
+                setTimeout(() => {
+                    resultsContainer.style.opacity = '1';
+                    resultsContainer.style.transform = 'translateY(0)';
+                }, 50);
+            }
+        });
+    </script>
+</body>
+</html>
+

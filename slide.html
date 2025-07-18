@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>4×4 Sliding Puzzle Game</title>
+  <link rel="icon" href="image/slide.jpg">
+    
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
+    }
+
+    .puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      width: 100%;
+      aspect-ratio: 1/1;
+      background-color: #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .puzzle-piece {
+      background-size: 400% 400%;
+      transition: transform 0.15s ease;
+      position: relative;
+      cursor: pointer;
+      transform: scale(1);
+    }
+
+    .puzzle-piece.empty {
+      background-color: #a0c4ff;
+      background-image: none !important;
+      cursor: default;
+      opacity: 0.8;
+    }
+
+    .puzzle-piece.moving {
+      z-index: 10;
+      transition: transform 0.15s ease;
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .file-input-container {
+      margin-bottom: 20px;
+    }
+
+    .file-input-label {
+      display: block;
+      padding: 10px 15px;
+      background-color: #2196F3;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .file-input-label:hover {
+      background-color: #0b7dda;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .win {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+
+    .instructions {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" style="text-decoration: none;color:white;"><div style="background-color: #4548FF;padding:5px 12px;position:fixed;top:20px;right:20px;font-size: 20px;border-radius: 5px;text-align: center;z-index: 2;">&#8962;   <!-- Displays ⌂ --></div></a>
+  <h1 style="padding-top: 20px;">Sliding Puzzle Game</h1>
+  <div class="file-input-container">
+    <label for="file-input" class="file-input-label">Upload Puzzle Image</label>
+    <input type="file" id="file-input" accept="image/*">
+  </div>
+
+  <div class="game-container">
+    <div id="puzzle-container" class="puzzle-container"></div>
+    <div id="status" class="status"></div>
+    <div class="controls">
+      <button id="shuffle-btn">Shuffle</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h3>How to Play:</h3>
+    <p>1. Upload any image using the button above</p>
+    <p>2. Click pieces adjacent to the empty space to move them</p>
+    <p>3. Arrange all pieces in order to solve the puzzle</p>
+  </div>
+
+  <script>
+    let puzzleState = [];
+    let emptyIndex = 15;
+    let imageSet = false;
+    let winState = false;
+    let isShuffling = false;
+    let originalImageUrl = '';
+
+    const puzzleContainer = document.getElementById('puzzle-container');
+    const shuffleBtn = document.getElementById('shuffle-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const statusEl = document.getElementById('status');
+    const fileInput = document.getElementById('file-input');
+
+    function initializePuzzle() {
+      puzzleContainer.innerHTML = '';
+      puzzleState = Array.from({ length: 16 }, (_, i) => i);
+      emptyIndex = 15;
+      winState = false;
+      statusEl.textContent = '';
+      statusEl.className = 'status';
+
+      for (let i = 0; i < 16; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.dataset.index = i;
+        piece.dataset.value = i === 15 ? '' : i;
+        updatePieceStyle(piece);
+        piece.addEventListener('click', handlePieceClick);
+        puzzleContainer.appendChild(piece);
+      }
+    }
+
+    function updatePieceStyle(piece) {
+      const value = piece.dataset.value;
+      if (value === '') {
+        piece.classList.add('empty');
+        piece.style.backgroundColor = '#a0c4ff';
+        piece.style.backgroundImage = 'none';
+      } else {
+        piece.classList.remove('empty');
+        piece.style.backgroundColor = '';
+        piece.style.backgroundImage = originalImageUrl ? `url('${originalImageUrl}')` : '';
+        
+        if (originalImageUrl) {
+          const val = parseInt(value);
+          const row = Math.floor(val / 4);
+          const col = val % 4;
+          piece.style.backgroundPosition = `${col * -100}% ${row * -100}%`;
+        }
+      }
+    }
+
+    function handlePieceClick(e) {
+      if (winState || !imageSet || isShuffling) return;
+      const clickedPiece = e.currentTarget;
+      const clickedIndex = parseInt(clickedPiece.dataset.index);
+      movePiece(clickedIndex);
+    }
+
+    async function movePiece(clickedIndex) {
+      const clickedRow = Math.floor(clickedIndex / 4);
+      const clickedCol = clickedIndex % 4;
+      const emptyRow = Math.floor(emptyIndex / 4);
+      const emptyCol = emptyIndex % 4;
+
+      // Check if adjacent to empty space
+      if ((Math.abs(clickedRow - emptyRow) === 1 && clickedCol === emptyCol) ||
+          (Math.abs(clickedCol - emptyCol) === 1 && clickedRow === emptyRow)) {
+        
+        const pieces = puzzleContainer.querySelectorAll('.puzzle-piece');
+        const clickedPiece = pieces[clickedIndex];
+        const emptyPiece = pieces[emptyIndex];
+        
+        // Add moving class for animation
+        clickedPiece.classList.add('moving');
+        
+        // Small bounce animation
+        clickedPiece.style.transform = 'scale(0.95)';
+        await new Promise(r => setTimeout(r, 50));
+        clickedPiece.style.transform = 'scale(1)';
+        await new Promise(r => setTimeout(r, 50));
+        
+        // Swap the values
+        const tempValue = clickedPiece.dataset.value;
+        clickedPiece.dataset.value = emptyPiece.dataset.value;
+        emptyPiece.dataset.value = tempValue;
+        
+        // Update styles
+        updatePieceStyle(clickedPiece);
+        updatePieceStyle(emptyPiece);
+        
+        // Remove moving class
+        clickedPiece.classList.remove('moving');
+        
+        // Update empty index
+        emptyIndex = clickedIndex;
+        
+        checkWin();
+      }
+    }
+
+    function checkWin() {
+  const pieces = puzzleContainer.querySelectorAll('.puzzle-piece');
+  for (let i = 0; i < 15; i++) {
+    if (parseInt(pieces[i].dataset.value) !== i) {
+      return;
+    }
+  }
+  
+  // Check if the empty piece is in the correct position (last position)
+  if (emptyIndex !== 15) {
+    return;
+  }
+  
+  winState = true;
+  statusEl.textContent = '🎉 Congratulations! You solved the puzzle!';
+  statusEl.className = 'status win';
+}
+
+    async function shufflePuzzle() {
+      if (winState || !imageSet || isShuffling) return;
+
+      isShuffling = true;
+      shuffleBtn.disabled = true;
+      resetBtn.disabled = true;
+
+      let currentEmpty = emptyIndex;
+      const directions = [-4, 4, -1, 1]; // up, down, left, right
+      let lastDirection = null;
+      let moves = 200;
+
+      while (moves--) {
+        const possibleDirections = directions.filter(dir => {
+          const newPos = currentEmpty + dir;
+          // Check boundaries and don't allow wrapping around
+          if (newPos < 0 || newPos > 15) return false;
+          if (Math.abs(dir) === 1 && Math.floor(newPos / 4) !== Math.floor(currentEmpty / 4)) return false;
+          // Don't undo the last move
+          if (lastDirection && dir === -lastDirection) return false;
+          return true;
+        });
+
+        const direction = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
+        const moveTo = currentEmpty + direction;
+        
+        // Get the pieces
+        const pieces = puzzleContainer.querySelectorAll('.puzzle-piece');
+        const movingPiece = pieces[moveTo];
+        
+        // Add moving class for animation
+        movingPiece.classList.add('moving');
+        
+        // Small bounce animation
+        movingPiece.style.transform = 'scale(0.95)';
+        await new Promise(r => setTimeout(r, 10));
+        movingPiece.style.transform = 'scale(1)';
+        await new Promise(r => setTimeout(r, 10));
+        
+        // Swap the values
+        const tempValue = movingPiece.dataset.value;
+        movingPiece.dataset.value = pieces[currentEmpty].dataset.value;
+        pieces[currentEmpty].dataset.value = tempValue;
+        
+        // Update styles
+        updatePieceStyle(movingPiece);
+        updatePieceStyle(pieces[currentEmpty]);
+        
+        // Remove moving class
+        movingPiece.classList.remove('moving');
+        
+        lastDirection = direction;
+        currentEmpty = moveTo;
+      }
+
+      emptyIndex = currentEmpty;
+      winState = false;
+      statusEl.textContent = '';
+      isShuffling = false;
+      shuffleBtn.disabled = false;
+      resetBtn.disabled = false;
+    }
+
+    fileInput.addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const img = new Image();
+        img.onload = function () {
+          originalImageUrl = event.target.result;
+          imageSet = true;
+          initializePuzzle();
+          statusEl.textContent = '🧩 Image loaded! Click pieces to move them.';
+          statusEl.className = 'status';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    shuffleBtn.addEventListener('click', shufflePuzzle);
+    resetBtn.addEventListener('click', () => {
+      if (!isShuffling && imageSet) {
+        initializePuzzle();
+      }
+    });
+
+    initializePuzzle();
+  </script>
+</body>
+</html>

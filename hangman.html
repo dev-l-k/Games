@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hangman Game</title>
+  <link rel="icon" href="image/hm.jpg">
+    
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    canvas {
+      background: #2c2c2c;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+
+    #word {
+      font-size: 32px;
+      letter-spacing: 10px;
+      margin-bottom: 20px;
+    }
+
+    #letters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+
+    button.letter {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 6px;
+      background: #444;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button.letter:disabled {
+      background: #777;
+      color: #aaa;
+      cursor: default;
+    }
+
+    #status {
+      font-size: 20px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .win {
+      color: #00ffcc;
+      font-size: 28px;
+    }
+
+    .lose {
+      color: #ff6b6b;
+      font-size: 28px;
+    }
+
+    #restartBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #00b894;
+      color: white;
+      cursor: pointer;
+    }
+
+    #restartBtn:hover {
+      background: #019875;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" style="text-decoration: none;color:white;"><div style="background-color: #4548FF;padding:5px 12px;position:fixed;top:20px;right:20px;font-size: 20px;border-radius: 5px;text-align: center;">&#8962;   <!-- Displays ⌂ --></div></a>
+  <h1>🎨 Hangman Game</h1>
+  <canvas id="hangmanCanvas" width="200" height="250"></canvas>
+  <div id="word">Loading...</div>
+  <div id="letters"></div>
+  <div id="status"></div>
+  <button id="restartBtn" onclick="startGame()">🔁 Restart</button>
+
+  <script>
+    const words = ["italy", "india", "egypt", "malaysia", "singapore", "russia", "america"];
+    const lettersContainer = document.getElementById("letters");
+    const wordDisplay = document.getElementById("word");
+    const statusDisplay = document.getElementById("status");
+    const canvas = document.getElementById("hangmanCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let selectedWord = "";
+    let displayedWord = [];
+    let lives = 10;
+    let guessedLetters = new Set();
+
+    function drawHangman(step) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "white";
+
+      switch (step) {
+        case 1: // base
+          ctx.beginPath(); ctx.moveTo(10, 240); ctx.lineTo(190, 240); ctx.stroke(); break;
+        case 2: // vertical pole
+          ctx.beginPath(); ctx.moveTo(50, 240); ctx.lineTo(50, 20); ctx.stroke(); break;
+        case 3: // top bar
+          ctx.beginPath(); ctx.moveTo(50, 20); ctx.lineTo(130, 20); ctx.stroke(); break;
+        case 4: // rope
+          ctx.beginPath(); ctx.moveTo(130, 20); ctx.lineTo(130, 40); ctx.stroke(); break;
+        case 5: // head
+          ctx.beginPath(); ctx.arc(130, 55, 15, 0, Math.PI * 2); ctx.stroke(); break;
+        case 6: // body
+          ctx.beginPath(); ctx.moveTo(130, 70); ctx.lineTo(130, 120); ctx.stroke(); break;
+        case 7: // left arm
+          ctx.beginPath(); ctx.moveTo(130, 80); ctx.lineTo(110, 100); ctx.stroke(); break;
+        case 8: // right arm
+          ctx.beginPath(); ctx.moveTo(130, 80); ctx.lineTo(150, 100); ctx.stroke(); break;
+        case 9: // left leg
+          ctx.beginPath(); ctx.moveTo(130, 120); ctx.lineTo(110, 150); ctx.stroke(); break;
+        case 10: // right leg
+          ctx.beginPath(); ctx.moveTo(130, 120); ctx.lineTo(150, 150); ctx.stroke(); break;
+      }
+    }
+
+    function startGame() {
+      selectedWord = words[Math.floor(Math.random() * words.length)];
+      displayedWord = Array(selectedWord.length).fill("_");
+      lives = 10;
+      guessedLetters.clear();
+      wordDisplay.textContent = displayedWord.join(" ");
+      statusDisplay.textContent = "";
+      lettersContainer.innerHTML = "";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 65; i <= 90; i++) {
+        const letter = String.fromCharCode(i).toLowerCase();
+        const button = document.createElement("button");
+        button.classList.add("letter");
+        button.textContent = letter;
+        button.onclick = () => handleGuess(letter, button);
+        lettersContainer.appendChild(button);
+      }
+    }
+
+    function handleGuess(letter, button) {
+      guessedLetters.add(letter);
+      button.disabled = true;
+
+      if (selectedWord.includes(letter)) {
+        for (let i = 0; i < selectedWord.length; i++) {
+          if (selectedWord[i] === letter) {
+            displayedWord[i] = letter;
+          }
+        }
+      } else {
+        drawHangman(11 - lives); // step 1 on first wrong, step 10 on last
+        lives--;
+      }
+
+      wordDisplay.textContent = displayedWord.join(" ");
+
+      if (displayedWord.join("") === selectedWord) {
+        statusDisplay.innerHTML = `<div class="win">🎉 You Win!</div>`;
+        disableAllButtons();
+      } else if (lives === 0) {
+        drawHangman(10);
+        statusDisplay.innerHTML = `<div class="lose">💀 You Lost!<br>The word was: <b>${selectedWord}</b></div>`;
+        disableAllButtons();
+      }
+    }
+
+    function disableAllButtons() {
+      document.querySelectorAll(".letter").forEach(btn => btn.disabled = true);
+    }
+
+    window.onload = startGame;
+  </script>
+</body>
+</html>
