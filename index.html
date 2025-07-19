@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Website</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: #f4f5f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    header, footer {
+      text-align: center;
+      background-color: #2c3e50;
+      color: white;
+      padding: 25px 10px;
+    }
+
+    h4 {
+      text-align: center;
+      color: #333;
+      font-family: monospace;
+      margin: 10px 0;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .box {
+      background-color: white;
+      border-radius: 12px;
+      margin: 15px;
+      width: 300px;
+      transition: transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      padding: 20px 15px;
+      text-decoration: none;
+      color: #333;
+    }
+
+    .box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .box img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    h3 {
+      color: #000069;
+      margin-bottom: 10px;
+    }
+
+    h5 {
+      color: #555;
+      font-weight: normal;
+    }
+
+    a {
+      text-decoration: none;
+    }
+    p{
+      font-size: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .box {
+        width: 90%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header, footer {
+        font-size: 20px;
+        padding: 20px 8px;
+      }
+
+      h4 {
+        font-size: 14px;
+        margin: 8px;
+      }
+
+      .box {
+        padding: 15px 10px;
+      }
+
+      h3 {
+        font-size: 18px;
+      }
+
+      h5 {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header><b><h1>My Game Storing Webpage</b></h1></header>
+  <h4>This webpage is a storage of games and webpages made by dev-l-k.</h4>
+  <h4>These games are purely made with HTML, CSS, and JS.</h4>
+
+  <div class="container">
+    <a href="ttt.html" class="box">
+      <h3>UNBEATABLE TIC TAC TOE</h3>
+      <img src="image/ttt.jpg" alt="Tic Tac Toe Game">
+      <h5>Click inside this box to open the Tic Tac Toe Game.</h5>
+    </a>
+
+    <a href="memory.html" class="box">
+      <h3>Memory Card Flip Game</h3>
+      <img src="image/memory.jpg" alt="Memory Card Game">
+      <h5>Click inside this box to open the Memory Game.</h5>
+    </a>
+
+    <a href="slide.html" class="box">
+      <h3>Sliding Puzzle Game</h3>
+      <img src="image/slide.jpg" alt="Sliding Puzzle">
+      <h5>Click inside this box to open the Sliding Puzzle Game.</h5>
+    </a>
+
+    <a href="colorpick.html" class="box">
+      <h3>HTML Color Picker App</h3>
+      <img src="image/color.jpg" alt="Color Picker">
+      <h5>Click inside this box to open the Color Picker App.</h5>
+    </a>
+
+    <a href="speed_type.html" class="box">
+      <h3>Typing Speed Calculator</h3>
+      <img src="image/type.jpg" alt="Typing Speed App">
+      <h5>Click inside this box to open the Typing Speed Calculator.</h5>
+    </a>
+
+    <a href="sudoku.html" class="box">
+      <h3>Sudoku Game</h3>
+      <img src="image/sudoku.jpg" alt="Sudoku Game">
+      <h5>Click inside this box to open the Sudoku Game.</h5>
+    </a>
+
+    <a href="calculator.html" class="box">
+      <h3>Calculator</h3>
+      <img src="image/calc.jpg" alt="Calculator App">
+      <h5>Click inside this box to open the Calculator App.</h5>
+    </a>
+
+    <a href="division.html" class="box">
+      <h3>Advanced Division Calculator</h3>
+      <img src="image/div.jpg" alt="Division App">
+      <h5>Click inside this box to open the Division Calculator App.</h5>
+    </a>
+
+    <a href="hangman.html" class="box">
+      <h3>Hangman Game</h3>
+      <img src="image/hm.jpg" alt="Hangman Game">
+      <h5>Click inside this box to open the Hangman Game.</h5>
+    </a>
+  </div>
+
+  <footer><p>This is a Simple Website for storing some HTML files. Some of these projects are made with the help of AI.</p></footer>
+</body>
+</html>
